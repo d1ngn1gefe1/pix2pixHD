@@ -10,27 +10,51 @@ from util.visualizer import Visualizer
 from util import html
 
 opt = TestOptions().parse(save=False)
-opt.nThreads = 1   # test code only supports nThreads = 1
-opt.batchSize = 1  # test code only supports batchSize = 1
+opt.nThreads = 8   # test code only supports nThreads = 1
+opt.batchSize = 8  # test code only supports batchSize = 1
 opt.serial_batches = True  # no shuffle
 opt.no_flip = True  # no flip
 
 data_loader = CreateDataLoader(opt)
 dataset = data_loader.load_data()
 model = create_model(opt)
-visualizer = Visualizer(opt)
-# create website
-web_dir = os.path.join(opt.results_dir, opt.name, '%s_%s' % (opt.phase, opt.which_epoch))
-webpage = html.HTML(web_dir, 'Experiment = %s, Phase = %s, Epoch = %s' % (opt.name, opt.phase, opt.which_epoch))
-# test
-for i, data in enumerate(dataset):
-    if i >= opt.how_many:
-        break
-    generated = model.inference(data['label'], data['inst'])
-    visuals = OrderedDict([('input_label', util.tensor2label(data['label'][0], opt.label_nc)),
-                           ('synthesized_image', util.tensor2im(generated.data[0]))])
-    img_path = data['path']
-    print('process image... %s' % img_path)
-    visualizer.save_images(webpage, visuals, img_path)
 
-webpage.save()
+""" visualization """
+# visualizer = Visualizer(opt)
+# # create website
+# web_dir = os.path.join(opt.results_dir, opt.name, '%s_%s' % (opt.phase, opt.which_epoch))
+# webpage = html.HTML(web_dir, 'Experiment = %s, Phase = %s, Epoch = %s' % (opt.name, opt.phase, opt.which_epoch))
+# # test
+# for i, data in enumerate(dataset):
+#     if i >= opt.how_many:
+#         break
+#     generated = model.inference(data['label'], data['inst'])
+#     visuals = OrderedDict([('input_label', util.tensor2label(data['label'][0], opt.label_nc)),
+#                            ('synthetic_img', util.tensor2im(generated.data[0])),
+#                            ('original_img', util.tensor2im(data['image'][0]))])
+#     img_path = data['path']
+#     print('process image... %s' % img_path)
+#     visualizer.save_images(webpage, visuals, img_path)
+#
+# webpage.save()
+
+
+""" save """
+import numpy as np
+from PIL import Image
+
+for i, data in enumerate(dataset):
+  generated = model.inference(data['label'], data['inst'])
+
+  for img, path in zip(generated.data, data['path']):
+    synthetic_img = util.tensor2im(img)
+    # print(synthetic_img.shape, np.amax(synthetic_img), np.amin(synthetic_img), np.mean(synthetic_img),
+    #       synthetic_img.dtype)
+
+    img_path = path.replace('gtFine_labelIds', 'synthetic').replace('gtFine', 'synthetic')
+    os.makedirs(os.path.dirname(img_path), exist_ok=True)
+
+    img_pil = Image.fromarray(synthetic_img)
+    img_pil.save(img_path)
+
+    print(img_path)

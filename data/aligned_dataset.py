@@ -10,19 +10,32 @@ class AlignedDataset(BaseDataset):
         self.opt = opt
         self.root = opt.dataroot    
 
-        ### label maps         
-        self.dir_label = os.path.join(opt.dataroot, opt.phase + '_label')              
-        self.label_paths = sorted(make_dataset(self.dir_label))
+        # ### label maps
+        # self.dir_label = os.path.join(opt.dataroot, opt.phase + '_label')
+        # self.label_paths = sorted(make_dataset(self.dir_label))
+        #
+        # ### real images
+        # if opt.isTrain:
+        #     self.dir_image = os.path.join(opt.dataroot, opt.phase + '_img')
+        #     self.image_paths = sorted(make_dataset(self.dir_image))
+        #
+        # ### instance maps
+        # if not opt.no_instance:
+        #     self.dir_inst = os.path.join(opt.dataroot, opt.phase + '_inst')
+        #     self.inst_paths = sorted(make_dataset(self.dir_inst))
 
-        ### real images
-        if opt.isTrain:
-            self.dir_image = os.path.join(opt.dataroot, opt.phase + '_img')  
-            self.image_paths = sorted(make_dataset(self.dir_image))
+        ##########
 
-        ### instance maps
-        if not opt.no_instance:
-            self.dir_inst = os.path.join(opt.dataroot, opt.phase + '_inst')
-            self.inst_paths = sorted(make_dataset(self.dir_inst))
+        import glob
+        root = '/home/luoa/slowbro/cityscapes/'
+        image_folder_path = os.path.join(root, 'leftImg8bit', opt.phase)
+        self.image_paths = glob.glob(os.path.join(image_folder_path, '*/*.png'))
+        self.label_paths = [p.replace('leftImg8bit', 'gtFine', 1).replace('leftImg8bit', 'gtFine_labelIds')
+                            for p in self.image_paths]
+        self.inst_paths = [p.replace('leftImg8bit', 'gtFine', 1).replace('leftImg8bit', 'gtFine_instanceIds')
+                           for p in self.image_paths]
+
+        ##########
 
         ### load precomputed instance-wise encoded features
         if opt.load_features:                              
@@ -46,7 +59,7 @@ class AlignedDataset(BaseDataset):
 
         image_tensor = inst_tensor = feat_tensor = 0
         ### real images
-        if self.opt.isTrain:
+        if True:  #if self.opt.isTrain:
             image_path = self.image_paths[index]   
             image = Image.open(image_path).convert('RGB')
             transform_image = get_transform(self.opt, params)      
