@@ -44,11 +44,11 @@ class AlignedDataset(BaseDataset):
             self.feat_paths = sorted(make_dataset(self.dir_feat))
 
         self.dataset_size = len(self.label_paths) 
-      
-    def __getitem__(self, index):        
-        ### label maps        
+
+    def __getitem__(self, index):
+        ### label maps
         label_path = self.label_paths[index]              
-        label = Image.open(label_path)        
+        label = Image.open(label_path)
         params = get_params(self.opt, label.size)
         if self.opt.label_nc == 0:
             transform_label = get_transform(self.opt, params)
